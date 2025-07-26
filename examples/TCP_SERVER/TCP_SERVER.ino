@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "rnwf.h"
+#include "rnwf_wifi.h"
 #include "rnwf_interface.h"
 #include "rnwf_net.h"
 
@@ -56,6 +56,8 @@ typedef struct
 } RNWF_STATE;
 
 RNWF_STATE rnwf_state;
+WIFI wifi;
+NET net;
 
 void setup() {
 
@@ -88,7 +90,7 @@ void RNWF_TCP_SERVER() {
   switch (rnwf_state.state) {
     case RNWF_ECHO_OFF:
       {
-        Err = RNWF_SetEchoOff();
+        Err = wifi.RNWF_SetEchoOff();
         if (Err) {
           Err = false;
           USBserial.println("RNWF Echo Off");
@@ -98,7 +100,7 @@ void RNWF_TCP_SERVER() {
       break;
     case RNWF_MAN_ID:
       {
-        Err = RNWF_GetManId();
+        Err = wifi.RNWF_GetManId();
         if (Err) {
           Err = false;
           USBserial.println("RNWF MAN ID RECEIVED");
@@ -108,7 +110,7 @@ void RNWF_TCP_SERVER() {
       break;
     case RNWF_REV_ID:
       {
-        Err = RNWF_GetRevId();
+        Err = wifi.RNWF_GetRevId();
         if (Err) {
           Err = false;
           USBserial.println("RNWF REV ID RECEIVED");
@@ -118,7 +120,7 @@ void RNWF_TCP_SERVER() {
       break;
     case RNWF_WIFI_INFO:
       {
-        Err = RNWF_WifiInfo();
+        Err = wifi.RNWF_WifiInfo();
         if (Err) {
           Err = false;
           USBserial.println("RNWF WIFI INFO RECEIVED");
@@ -130,7 +132,7 @@ void RNWF_TCP_SERVER() {
       {
         char command[30];
         sprintf(command, SYS_RNWF_WIFI_SET_REG_DOMAIN, SYS_RNWF_COUNTRYCODE);
-        Err = RNWF_WifiSetRegDomain(command);
+        Err = wifi.RNWF_WifiSetRegDomain(command);
         if (Err) {
           Err = false;
           USBserial.println("RNWF WIFI DOMAIN SET");
@@ -140,7 +142,7 @@ void RNWF_TCP_SERVER() {
       break;
     case RNWF_WIFI_GET_SOFT_AP_STATE:
       {
-        Err = RNWF_WifiGetSoftApState();
+        Err = wifi.RNWF_WifiGetSoftApState();
         if (Err) {
           Err = false;
           String response = "";
@@ -170,7 +172,7 @@ void RNWF_TCP_SERVER() {
       break;
     case RNWF_WIFI_SOFT_AP_DISABLE:
       {
-        Err = RNWF_WifiSoftApDisable();
+        Err = wifi.RNWF_WifiSoftApDisable();
         if (Err) {
           Err = false;
           USBserial.println("RNWF WIFI SOFT AP DISABLED");
@@ -180,7 +182,7 @@ void RNWF_TCP_SERVER() {
       break;
     case RNWF_WIFI_GET_STA_STATE:
       {
-        Err = RNWF_WifiGetStaState();
+        Err = wifi.RNWF_WifiGetStaState();
         if (Err) {
           Err = false;
           String response = "";
@@ -209,7 +211,7 @@ void RNWF_TCP_SERVER() {
       break;
     case RNWF_WIFI_DISCONNECT:
       {
-        Err = RNWF_WifiDisconnect();
+        Err = wifi.RNWF_WifiDisconnect();
         if (Err) {
           Err = false;
           USBserial.println("RNWF WIFI DISCONNECTED");
@@ -221,7 +223,7 @@ void RNWF_TCP_SERVER() {
       {
         char command[30];
         sprintf(command, SYS_RNWF_WIFI_SET_STA_SSID, SYS_RNWF_WIFI_STA_SSID);
-        Err = RNWF_WifiSetStaSsid(command);
+        Err = wifi.RNWF_WifiSetStaSsid(command);
         if (Err) {
           Err = false;
           USBserial.println("RNWF WIFI STA SSID SET");
@@ -233,7 +235,7 @@ void RNWF_TCP_SERVER() {
       {
         char command[30];
         sprintf(command, SYS_RNWF_WIFI_SET_STA_PWD, SYS_RNWF_WIFI_STA_PWD);
-        Err = RNWF_WifiSetStaPwd(command);
+        Err = wifi.RNWF_WifiSetStaPwd(command);
         if (Err) {
           Err = false;
           USBserial.println("RNWF WIFI STA PASSWORD SET");
@@ -245,7 +247,7 @@ void RNWF_TCP_SERVER() {
       {
         char command[30];
         sprintf(command, SYS_RNWF_WIFI_SET_STA_SEC, SYS_RNWF_WIFI_SECURITY_WPA3_TRANS);
-        Err = RNWF_WifiSetStaSec(command);
+        Err = wifi.RNWF_WifiSetStaSec(command);
         if (Err) {
           Err = false;
           USBserial.println("RNWF WIFI STA SECURITY SET");
@@ -255,7 +257,7 @@ void RNWF_TCP_SERVER() {
       break;
     case RNWF_WIFI_CONNECT:
       {
-        Err = RNWF_WifiConnect();
+        Err = wifi.RNWF_WifiConnect();
         unsigned long startTime = millis();
         String receivedString;
         if (Err) {
@@ -295,7 +297,7 @@ void RNWF_TCP_SERVER() {
       {
         char command[30];
         sprintf(command, SYS_RNWF_SOCK_OPEN_TCP, SYS_RNWF_NET_IPV4);
-        Err = RNWF_WifiOpenSocket(command);
+        Err = net.RNWF_WifiOpenSocket(command);
         if (Err) {
           Err = false;
           String response = RNWFserial.readString();
@@ -336,7 +338,7 @@ void RNWF_TCP_SERVER() {
       {
         char command[50];
         sprintf(command, SYS_RNWF_SOCK_BIND_LOCAL, socketId, SYS_RNWF_NET_SOCK_PORT0, SYS_RNWF_NET_NO_OF_CLIENT_SOCKETS);
-        Err = RNWF_WifiSocketBindLocal(command);
+        Err = net.RNWF_WifiSocketBindLocal(command);
         if (Err) {
           Err = false;
           USBserial.println("RNWF WIFI SOCKET BIND LOCAL SUCCESSFUL");
@@ -373,7 +375,7 @@ void RNWF_TCP_SERVER() {
           char command[50];
           int dataLength = strlen(TEST_MESSAGE.c_str());
           sprintf(command, SYS_RNWF_SOCK_BINARY_WRITE_TCP, client, dataLength);
-          Err = RNWF_WifiSocketWriteTcp(command, TEST_MESSAGE.c_str());
+          Err = net.RNWF_WifiSocketWriteTcp(command, TEST_MESSAGE.c_str());
           if (Err) {
             Err = false;
             clientStatus = true;
@@ -398,7 +400,7 @@ void RNWF_TCP_SERVER() {
           char command[50];
           uint32_t client = clientId.toInt();
           sprintf(command, SYS_RNWF_SOCK_READ, client, SYS_RNWF_BINARY_MODE, receivedDataSize);
-          RNWF_WifiSocketReadTcp(command);
+          net.RNWF_WifiSocketReadTcp(command);
           String receivedData = RNWFserial.readString();
           int hashIndex = receivedData.indexOf('#');
           int okIndex = receivedData.indexOf("OK");
@@ -410,14 +412,14 @@ void RNWF_TCP_SERVER() {
             USBserial.println("Invalid data format!");
           }
         } 
-        else if (!serialInput.isEmpty() && clientStatus) {
+        else if (serialInput.length() > 0 && clientStatus){
 
           uint32_t client = clientId.toInt();
           char command[50];
           int dataLength = strlen(serialInput.c_str());  // Get the length of the string
           sprintf(command, SYS_RNWF_SOCK_BINARY_WRITE_TCP, client, dataLength);
           USBserial.print("\n");
-          Err = RNWF_WifiSocketWriteTcp(command, serialInput.c_str());  // Convert String to C-string
+          Err = net.RNWF_WifiSocketWriteTcp(command, serialInput.c_str());  // Convert String to C-string
           if (Err) {
             Err = false;
             USBserial.println("Data Sent: " + serialInput);

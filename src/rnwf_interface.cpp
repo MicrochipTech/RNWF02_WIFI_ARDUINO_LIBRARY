@@ -1,47 +1,23 @@
-/*******************************************************************************
-     RNWF Host Assisted System Service Implementation
+/**
+ * \file rnwf_interface.cpp
+ * \brief This source file contains APIs to Write and Read the command and data via UART.
+ */
+/*
+© 2025 Microchip Technology Inc. and its subsidiaries. All rights reserved.
 
-     File Name:
-       rnwf_interface.cpp
-
-     Summary:
-       Source code for the RNWF Host Assisted System Service implementation.
-
-     Description:
-       This file contains the source code for the RNWF Interface with arduino 
-       implementation.
-    *******************************************************************************/
-
-/*******************************************************************************
-   Copyright (C) 2025 released Microchip Technology Inc.  All rights reserved.
-
-
-   Microchip licenses to you the right to use, modify, copy and distribute
-   Software only when embedded on a Microchip microcontroller or digital signal
-   controller that is integrated into your product or third party product
-   (pursuant to the sublicense terms in the accompanying license agreement).
-
-   You should refer to the license agreement accompanying this Software for
-   additional information regarding your rights and obligations.
-
-   SOFTWARE AND DOCUMENTATION ARE PROVIDED AS IS WITHOUT WARRANTY OF ANY KIND,
-   EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION, ANY WARRANTY OF
-   MERCHANTABILITY, TITLE, NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
-   IN NO EVENT SHALL MICROCHIP OR ITS LICENSORS BE LIABLE OR OBLIGATED UNDER
-   CONTRACT, NEGLIGENCE, STRICT LIABILITY, CONTRIBUTION, BREACH OF WARRANTY, OR
-   OTHER LEGAL EQUITABLE THEORY ANY DIRECT OR INDIRECT DAMAGES OR EXPENSES
-   INCLUDING BUT NOT LIMITED TO ANY INCIDENTAL, SPECIAL, INDIRECT, PUNITIVE OR
-   CONSEQUENTIAL DAMAGES, LOST PROFITS OR LOST DATA, COST OF PROCUREMENT OF
-   SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
-   (INCLUDING BUT NOT LIMITED TO ANY DEFENSE THEREOF), OR OTHER SIMILAR COSTS.
-    *******************************************************************************/
-//DOM-IGNORE-END
-
-// *****************************************************************************
-// *****************************************************************************
-// Section: Included Files
-// *****************************************************************************
-// *****************************************************************************
+Subject to your compliance with these terms, you may use this Microchip software and any derivatives 
+exclusively with Microchip products. You are responsible for complying with third party license terms 
+applicable to your use of third party software (including open source software) that may accompany this 
+Microchip software. SOFTWARE IS “AS IS.” NO WARRANTIES, WHETHER EXPRESS, IMPLIED OR 
+STATUTORY, APPLY TO THIS SOFTWARE, INCLUDING ANY IMPLIED WARRANTIES OF NON-INFRINGEMENT,
+MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL 
+MICROCHIP BE LIABLE FOR ANY INDIRECT, SPECIAL, PUNITIVE, INCIDENTAL OR CONSEQUENTIAL LOSS, 
+DAMAGE, COST OR EXPENSE OF ANY KIND WHATSOEVER RELATED TO THE SOFTWARE, HOWEVER 
+CAUSED, EVEN IF MICROCHIP HAS BEEN ADVISED OF THE POSSIBILITY OR THE DAMAGES ARE 
+FORESEEABLE. TO THE FULLEST EXTENT ALLOWED BY LAW, MICROCHIP’S TOTAL LIABILITY ON ALL 
+CLAIMS RELATED TO THE SOFTWARE WILL NOT EXCEED AMOUNT OF FEES, IF ANY, YOU PAID DIRECTLY 
+TO MICROCHIP FOR THIS SOFTWARE
+*/
 
 #include <Arduino.h>
 #include "rnwf_interface.h"
@@ -51,22 +27,28 @@
 static size_t dummyread = 0;
 static char ReadData[100];
 
+// Static variable to hold the user's Serial pointer
+static HardwareSerial* RNWFserial = nullptr;
+
+void RNWF_SerialInit(HardwareSerial* serial) {
+    RNWFserial = serial;
+}
 
 String UART_RNWF_Read(void) {
-  String receivedString = RNWFserial.readString();
+  String receivedString = RNWFserial->readString();
   return receivedString;
 }
 
 void UART_RNWF_write(const char *buffer) {
-  dummyread = RNWFserial.write(buffer);
+  dummyread = RNWFserial->write(buffer);
 }
 
 bool UART_RNWF_ReceiveReady(void) {
-  return RNWFserial.available() != 0U ? true : false;
+  return RNWFserial->available() != 0U ? true : false;
 }
 
 bool UART_RNWF_TransmitReady(void) {
-  return RNWFserial.availableForWrite() != 0U ? true : false;
+  return RNWFserial->availableForWrite() != 0U ? true : false;
 }
 
 static inline void RNWF_Delay(uint32_t delayCount) {
@@ -75,7 +57,7 @@ static inline void RNWF_Delay(uint32_t delayCount) {
   }
 }
 
-void RNBD_SendCmd(const char *cmd) {
+void RNWF_SendCmd(const char *cmd) {
   while (!UART_RNWF_TransmitReady()) {}
   UART_RNWF_write(cmd);
   while (!UART_RNWF_TransmitReady()) {}
@@ -84,7 +66,7 @@ void RNBD_SendCmd(const char *cmd) {
   Serial.println(cmd);
 }
 
-bool RNWF_SendCommand_ReceiveResponse(const char *cmdMsg, const char *responsemsg) {  //(const char *cmdMsg, uint8_t cmdLen, const char *responsemsg, uint8_t responseLen)
+bool RNWF_SendCommand_ReceiveResponse(const char *cmdMsg, const char *responsemsg) {
   unsigned long startTime = millis();
   String receivedString;
 
@@ -94,7 +76,7 @@ bool RNWF_SendCommand_ReceiveResponse(const char *cmdMsg, const char *responsems
   }
 
   //Sending Command to UART
-  RNBD_SendCmd(cmdMsg);
+  RNWF_SendCmd(cmdMsg);
 
   // Read data for 2 second
   while (millis() - startTime < 2000) {
