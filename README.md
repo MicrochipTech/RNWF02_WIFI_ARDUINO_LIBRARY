@@ -73,6 +73,8 @@ The application also supports configuring the RNWF02 module as a TCP server usin
 
 - Open TCP_CLIENT or TCP_SERVER example sketch from File->Examples->Microchip_RNWF02 for programming the board.
 
+![](docs/example.png)
+
 - Select the programming port of the Arduino Board and upload the sketch.
 
 ![](docs/port.png)
